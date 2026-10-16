@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<!--
+  Note: the file code will not store any details it's only a small joke to interest your friends
+
+  HAPPY BIRTHDAY V.2 – "Face Scan" prank page
+
+  Files: index.html (this page), style.css (look), script.js (story + animations)
+
+  To change the texts, name or phone, scroll to the CONFIG block at the bottom.
+
+  NOTE:
+  Don't forget to add your phone number in the Phone section scroll down:
+
+  in config : "phone": "+0000000000"
+
+  Replace the number only +000 0000000
+
+  ( ADD YOUR PHONE NUMBER = +COUNTRY CODE + YOUR NUMBER )
+
+-->
+<html lang="en">
+<head>
+  <!-- basic page setup -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <!-- privacy: don't tell other sites where visitors came from, and keep this page out of Google -->
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Security policy: only script.js / style.css from this site, plus Google Fonts, may load.
+       No inline scripts or inline styles are allowed. The CONFIG block below is data only.
+       NOTE: this page never turns on the camera — the "scan" is only an animation. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+
+  <title>!</title>
+
+  <!-- font: JetBrains Mono from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" crossorigin="anonymous">
+
+  <!-- all the page styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- background layers: falling characters, TV scanlines and dark corners -->
+<canvas id="bg"></canvas>
+<div class="scan-lines"></div>
+<div class="vignette"></div>
+
+<!-- top status bar -->
+<header class="topbar">
+  <span class="tb-l"><i class="dot"></i><span id="tbState">SECURE NODE</span></span>
+  <span class="tb-r" id="tbClock">00:00:00</span>
+</header>
+
+<!-- ============ 1. trust ============ -->
+<main class="screen" id="s-q1">
+  <div class="panel wide">
+    <div class="art-wrap"><div class="art glitch"><pre class="ascii logo-bang" id="logo" aria-label="!">
+██╗
+██║
+██║
+╚═╝
+██╗
+╚═╝
+
+</pre></div></div>
+    <p class="kicker">* Be Sure In Your Answers * </p>
+    <h1 class="q glitch-text" data-text=""><span id="q1"></span><span class="caret"></span></h1>
+    <div class="btns" id="b1">
+      <button class="btn" id="yes1" type="button">YES</button>
+      <span class="sep">|</span>
+      <button class="btn no" id="no1" type="button">NO</button>
+    </div>
+  </div>
+</main>
+
+<!-- ============ 1b. access granted ============ -->
+<main class="screen hidden" id="s-access">
+  <div class="panel">
+    <p class="kicker ok">// access granted</p>
+    <h2 class="msg"><span id="accessMsg"></span><span class="caret"></span></h2>
+    <div class="prog"><div class="prog-fill" id="accFill"></div></div>
+    <p class="prog-label" id="accLabel">LINKING DEVICE… 0%</p>
+    <div class="mini-log" id="accLog"></div>
+  </div>
+</main>
+
+<!-- ============ 1c. the system is stronger ============ -->
+<main class="screen hidden" id="s-strong">
+  <div class="panel">
+    <h2 class="msg warn-msg"><span id="strongMsg"></span><span class="caret"></span></h2>
+    <div class="mask-box hidden" id="maskBox1"></div>
+  </div>
+</main>
+
+<!-- ============ 2. camera ============ -->
+<main class="screen hidden" id="s-q2">
+  <div class="panel">
+    <div class="cam-ico" aria-hidden="true"><span></span></div>
+    <p class="kicker">* This Time We Will See The Truth About your Answers *</p>
+    <h1 class="q"><span id="q2"></span><span class="caret"></span></h1>
+    <div class="btns" id="b2">
+      <button class="btn" id="yes2" type="button">YES</button>
+      <span class="sep">|</span>
+      <button class="btn no" id="no2" type="button">NO</button>
+    </div>
+  </div>
+</main>
+
+<!-- ============ 3. face scan ============ -->
+<main class="screen hidden" id="s-scan">
+  <div class="scanner">
+    <div class="cam-head">
+      <span><i class="rec"></i> REC</span><span>CAM_01 · BIOMETRIC</span><span id="camTime">00:00</span>
+    </div>
+    <div class="viewport" id="viewport">
+      <canvas id="face"></canvas>
+      <div class="bracket tl"></div><div class="bracket tr"></div>
+      <div class="bracket bl"></div><div class="bracket br"></div>
+      <div class="sweep" id="sweep"></div>
+      <div class="lock hidden" id="lock">TARGET LOCKED</div>
+    </div>
+    <div class="readout">
+      <div class="ro"><span>FACIAL POINTS</span><b id="roPts">0/68</b></div>
+      <div class="ro"><span>DEPTH MAP</span><b id="roDepth">0%</b></div>
+      <div class="ro big"><span>FACE MATCH</span><b id="roMatch">0%</b></div>
+    </div>
+    <p class="scan-status" id="scanStatus">INITIALIZING SCANNER…</p>
+  </div>
+</main>
+
+<!-- ============ 4. identity table ============ -->
+<main class="screen hidden" id="s-id">
+  <div class="idcard" id="idcard">
+    <div class="id-head"><span>IDENTITY RECORD</span><span id="idRef">#0000</span></div>
+    <div class="id-body">
+      <div class="photo" aria-hidden="true">
+        <svg viewBox="0 0 100 120" class="sil"><circle cx="50" cy="44" r="23"/><path d="M6 120c2-32 21-48 44-48s42 16 44 48z"/></svg>
+        <div class="pixels"></div>
+        <span class="photo-tag">IMG_QUALITY: LOW</span>
+      </div>
+      <table class="id-table">
+        <tr><th>NAME</th><td id="idName"></td></tr>
+        <tr><th>DAY</th><td id="idDay"></td></tr>
+        <tr><th>DATE</th><td id="idDate"></td></tr>
+        <tr><th>DEVICE</th><td>LINKED</td></tr>
+        <tr><th>MATCH</th><td id="idMatch">99%</td></tr>
+        <tr><th>STATUS</th><td id="idStatus" class="pending">VERIFYING…</td></tr>
+      </table>
+    </div>
+    <div class="id-alert hidden" id="idAlert">
+      <b>&#9888; INFORMATION DOES NOT MATCH</b>
+      <span>image is not clear enough to confirm identity</span>
+    </div>
+    <p class="id-next" id="idNext"></p>
+  </div>
+</main>
+
+<!-- ============ 5. hack sequence ============ -->
+<main class="screen hidden" id="s-hack">
+  <canvas id="code"></canvas>
+  <div class="mask-box big" id="maskBox2"></div>
+  <div class="hack-log" id="hackLog"></div>
+  <p class="hack-bar" id="hackBar"></p>
+</main>
+
+<!-- ============ 6. celebration ============ -->
+<main class="screen hidden" id="s-party">
+  <canvas id="party"></canvas>
+  <div class="party-ui" id="partyUi">
+    <div class="hb-art" id="hbArt">
+      <div class="art-wrap"><div class="art art-hb">
+<pre class="ascii hb-ascii" id="hb1" aria-label="HAPPY">
+
+██╗  ██╗ █████╗ ██████╗ ██████╗ ██╗   ██╗
+██║  ██║██╔══██╗██╔══██╗██╔══██╗╚██╗ ██╔╝
+███████║███████║██████╔╝██████╔╝ ╚████╔╝
+██╔══██║██╔══██║██╔═══╝ ██╔═══╝   ╚██╔╝
+██║  ██║██║  ██║██║     ██║        ██║
+╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝        ╚═╝
+
+</pre>
+
+<pre class="ascii hb-ascii" id="hb2" aria-label="BIRTHDAY">
+
+██████╗ ██╗██████╗ ████████╗██╗  ██╗██████╗  █████╗ ██╗   ██╗
+██╔══██╗██║██╔══██╗╚══██╔══╝██║  ██║██╔══██╗██╔══██╗╚██╗ ██╔╝
+██████╔╝██║██████╔╝   ██║   ███████║██║  ██║███████║ ╚████╔╝
+██╔══██╗██║██╔══██╗   ██║   ██╔══██║██║  ██║██╔══██║  ╚██╔╝
+██████╔╝██║██║  ██║   ██║   ██║  ██║██████╔╝██║  ██║   ██║
+╚═════╝ ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝   ╚═╝
+
+</pre>
+      </div></div>
+      <pre class="cake" id="cake" aria-hidden="true"></pre>
+    </div>
+    <div class="party-card" id="partyCard">
+      <p class="kicker ok">// decryption complete</p>
+      <p class="wish" id="wish"></p>
+      <p class="wish2" id="wish2"></p>
+      <a class="btn call" id="callBtn" href="#">CALL</a>
+      <button class="again" id="replayBtn" type="button">[ run it again ]</button>
+    </div>
+  </div>
+</main>
+
+<!-- ============ modal: the red error box (used by the NO buttons) ============ -->
+<div class="veil" id="veil">
+  <div class="alert" role="alertdialog" aria-modal="true" aria-labelledby="alertMsg">
+    <div class="alert-top"><span id="alertTitle">ERROR</span><span>✕</span></div>
+    <p class="alert-msg" id="alertMsg"></p>
+    <button class="btn" id="alertBtn" type="button">TRY AGAIN</button>
+  </div>
+</div>
+
+<!-- sound on/off switch, shown on the birthday screen -->
+<button class="mute hidden" id="muteBtn" type="button">SOUND: ON</button>
+
+<!-- ================================================================
+     EDIT HERE — texts, name and phone. This block is data only (it never
+     runs), so editing it is safe and does not break the security policy.
+     Keep the "quotes" and commas exactly as they are.
+       name          : the name shown in the identity table
+       phone         : with country code, digits and + only | NOTE:( ADD YOUR PHONE NUMBER HERE = COUNTRY CODE + YOUR NUMBER )
+       hideNoAfterOne: true = the NO button disappears after the first NO
+       maskImage     : optional picture for the mask, e.g. "mask.png" — put the
+                       file in this same folder. Leave "" to use the hooded figure.
+                       (Only files from this folder work, not web links.)
+       maskStyle     : "text" = picture is drawn with the moving green text
+                       "image" = picture is shown as it is, tinted green
+     ================================================================ -->
+<script type="application/json" id="config">
+{
+  "name": "Add The Name You Want",
+  "question": "Do You Trust Me🙄? ",
+  "sadNo": "So I'm Sad Now, See My Magic 😈",
+  "accessYes": "Hhh, you get me access to your phone this time 😈",
+  "stronger": "This time is not like before... the system is stronger, faster and better see...",
+  "camera": "Can I Use Your Camera💀?",
+  "sadCam": "So You Don't Trust Me and you think I'm a bad guy, Ok let me see what you can do now 😈",
+  "wish": "< / > I was joking, Don't Be Scared 🤭",
+  "wish2": "Happy birthday and I hope this year brings you endless happiness, success, good health, and everything you've been wishing for.🎂✨",
+  "callText": "One Last Thing, Click Me 🫣",
+  "phone": "+0000000000",
+  "hideNoAfterOne": true,
+  "maskImage": "Mask.png",
+  "maskStyle": "text"
+}
+</script>
+
+<!-- the story and all animations -->
+<script src="script.js" defer></script>
+</body>
+</html>
